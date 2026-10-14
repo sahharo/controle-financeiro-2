@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Pressable, View } from 'react-native';
 
+import { EscolherBanco } from '@/components/EscolherBanco';
 import { FormRenda } from '@/components/FormRenda';
 import { Apoio, Texto } from '@/components/Texto';
-import { Botao, Campo, CampoValor, Chip, Marcador, Tela } from '@/components/ui';
+import { Botao, Campo, CampoValor, Marcador, Tela } from '@/components/ui';
 import { fmtR } from '@/lib/dinheiro';
 import { useStore, type Renda } from '@/store';
 import { cores } from '@/theme';
@@ -14,7 +15,6 @@ interface FixoRascunho {
   dia: string;
 }
 
-const BANCOS = ['Nubank', 'Inter', 'Itaú', 'Bradesco', 'C6', 'Santander'];
 
 export default function Onboarding() {
   const nome = useStore((s) => s.usuario?.nome);
@@ -159,12 +159,7 @@ export default function Onboarding() {
           <View style={{ gap: 16 }}>
             {!semCartao ? (
               <>
-                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-                  {BANCOS.map((b) => (
-                    <Chip key={b} rotulo={b} ativo={cartao.nome === b} onPress={() => setCartao({ ...cartao, nome: b })} altura={40} />
-                  ))}
-                </View>
-                <Campo rotulo="Nome do cartão" value={cartao.nome} onChangeText={(n) => setCartao({ ...cartao, nome: n })} />
+                <EscolherBanco nome={cartao.nome} onChange={(nome) => setCartao({ ...cartao, nome })} />
                 <View style={{ flexDirection: 'row', gap: 10 }}>
                   <View style={{ flex: 1 }}>
                     <Campo

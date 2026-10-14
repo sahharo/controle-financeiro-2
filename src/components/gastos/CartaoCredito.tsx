@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ScrollView, View } from 'react-native';
 
+import { EscolherBanco } from '../EscolherBanco';
 import { Folha } from '../Folha';
 import { Apoio, Texto } from '../Texto';
 import { Barra, Botao, BotaoRedondo, BotaoTexto, Campo, CampoValor, Cartao, Chip, Linha, Selo, TituloSecao, Vazio } from '../ui';
@@ -114,7 +115,7 @@ export function CartaoCredito() {
       >
         {rascunho ? (
           <>
-            <Campo rotulo="Nome" value={rascunho.nome} onChangeText={(nome) => setRascunho({ ...rascunho, nome })} placeholder="Ex.: Nubank" />
+            <EscolherBanco key={rascunho.id ?? 'novo'} nome={rascunho.nome} onChange={(nome) => setRascunho({ ...rascunho, nome })} />
             <View style={{ flexDirection: 'row', gap: 10 }}>
               <View style={{ flex: 1 }}>
                 <Campo
