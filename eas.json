@@ -14,13 +14,13 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://sobra.onrender.com"
+        "EXPO_PUBLIC_API_URL": "https://sobra-4lb6.onrender.com"
       }
     },
     "production": {
       "autoIncrement": true,
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://sobra.onrender.com"
+        "EXPO_PUBLIC_API_URL": "https://sobra-4lb6.onrender.com"
       }
     }
   },

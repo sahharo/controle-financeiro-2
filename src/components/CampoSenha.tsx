@@ -40,12 +40,13 @@ export function CampoSenha({
         direita={
           <Pressable
             accessibilityRole="button"
+            accessibilityLabel={ver ? 'Ocultar senha' : 'Mostrar senha'}
             onPress={() => setVer(!ver)}
-            style={{ height: 44, paddingHorizontal: 10, justifyContent: 'center' }}
+            hitSlop={6}
+            style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}
           >
-            <Texto tam={13} cor={cores.destaqueTexto}>
-              {ver ? 'Ocultar' : 'Mostrar'}
-            </Texto>
+            {/* Olho aberto: senha à mostra. Olho riscado: senha escondida. */}
+            <Icone nome={ver ? 'olho' : 'olhoFechado'} tam={20} cor={cores.textoApoio} />
           </Pressable>
         }
         {...props}

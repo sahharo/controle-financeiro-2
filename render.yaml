@@ -3,7 +3,7 @@ services:
   - type: web
     name: sobra
     runtime: node
-    plan: starter
+    plan: free
     buildCommand: npm ci --include=dev && npm run build:web && cd server && npm ci --include=dev
     startCommand: cd server && npm start
     healthCheckPath: /api/saude

@@ -1,6 +1,6 @@
 import { lerCsv, lerOfx } from '../importacao';
 import { aliquotaIR, lancarRendimentos, rendimentoDoMes } from '../rendimento';
-import { cpfValido, mascaraCelular, mascaraCpf } from '../validacao';
+import { celularValido, cpfValido, emailValido, mascaraCelular, mascaraCpf } from '../validacao';
 import type { Caixinha } from '@/store/tipos';
 
 describe('importação', () => {
@@ -60,5 +60,21 @@ describe('validação', () => {
     expect(cpfValido('529.982.247-24')).toBe(false);
     expect(mascaraCpf('52998224725')).toBe('529.982.247-25');
     expect(mascaraCelular('11912345678')).toBe('(11) 91234-5678');
+  });
+
+  it('celular: DDD que existe, 9 na frente e 11 números', () => {
+    expect(celularValido('(11) 91234-5678')).toBe(true);
+    expect(celularValido('(85) 98765-4321')).toBe(true);
+    expect(celularValido('(11) 11111-1111')).toBe(false); // não começa com 9
+    expect(celularValido('(11) 99999-9999')).toBe(false); // tudo igual
+    expect(celularValido('(20) 91234-5678')).toBe(false); // DDD 20 não existe
+    expect(celularValido('(11) 3456-7890')).toBe(false); // fixo, não é celular
+    expect(celularValido('(11) 91234-567')).toBe(false); // incompleto
+  });
+
+  it('e-mail', () => {
+    for (const ok of ['marina@gmail.com', 'marina.costa+sobra@empresa.com.br', ' a_b@x-y.io ']) expect(emailValido(ok)).toBe(true);
+    for (const ruim of ['abc', 'abc@', 'marina@gmail', 'marina@gmail.c', 'mari na@gmail.com', 'marina@@gmail.com', 'marina..c@gmail.com', '.marina@gmail.com', 'marina@.gmail.com', 'marina@gmail.com.'])
+      expect(emailValido(ruim)).toBe(false);
   });
 });

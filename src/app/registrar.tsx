@@ -180,7 +180,7 @@ export default function Registrar() {
               placeholder="R$ 0,00"
               placeholderTextColor={cores.bordaForte}
               onChangeText={(t) => setValor(mascaraValor(t).centavos)}
-              style={{ fontFamily: familia(600, true), fontSize: 22, color: cores.texto, textAlign: 'right', minWidth: 160, padding: 0 }}
+              style={{ outlineWidth: 0, fontFamily: familia(600, true), fontSize: 22, color: cores.texto, textAlign: 'right', minWidth: 160, padding: 0 }}
             />
           </View>
           <Divisor />
@@ -194,7 +194,7 @@ export default function Registrar() {
               onChangeText={setDescricao}
               placeholder="Ex.: Mercado"
               placeholderTextColor={cores.bordaForte}
-              style={{ flex: 1, fontFamily: familia(400), fontSize: 15, color: cores.texto, textAlign: 'right', padding: 0 }}
+              style={{ outlineWidth: 0, flex: 1, fontFamily: familia(400), fontSize: 15, color: cores.texto, textAlign: 'right', padding: 0 }}
             />
           </View>
           <Divisor />

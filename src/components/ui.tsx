@@ -36,25 +36,28 @@ interface TelaProps {
 export function Tela({ children, rolar = true, rodape, padding = true, emAba = false, contentStyle }: TelaProps) {
   const ins = useSafeAreaInsets();
   const pad: ViewStyle = padding ? { paddingHorizontal: margem } : {};
+  const fimDaTela = emAba ? 16 : Math.max(ins.bottom, 16) + 12;
+  // O rodapé (botões) faz parte do que rola: em tela alta ele fica lá embaixo (marginTop auto);
+  // em tela baixa aparece depois do último campo, sem cobrir nada.
+  const blocoRodape = rodape ? <View style={{ marginTop: 'auto', paddingTop: 24, paddingBottom: fimDaTela }}>{rodape}</View> : null;
   return (
     <View style={{ flex: 1, backgroundColor: cores.fundo, paddingTop: ins.top }}>
       {rolar ? (
         <ScrollView
           style={{ flex: 1 }}
-          contentContainerStyle={[pad, { paddingBottom: 24, flexGrow: 1 }, contentStyle]}
+          contentContainerStyle={[pad, { paddingBottom: rodape ? 0 : 24, flexGrow: 1 }, contentStyle]}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
           {children}
+          {blocoRodape}
         </ScrollView>
       ) : (
-        <View style={[{ flex: 1 }, pad, contentStyle]}>{children}</View>
-      )}
-      {rodape ? (
-        <View style={{ paddingHorizontal: margem, paddingTop: 12, paddingBottom: emAba ? 16 : Math.max(ins.bottom, 16) + 12 }}>
-          {rodape}
+        <View style={[{ flex: 1 }, pad, contentStyle]}>
+          {children}
+          {blocoRodape}
         </View>
-      ) : null}
+      )}
     </View>
   );
 }
@@ -490,7 +493,7 @@ export function Campo({ rotulo, erro, mono, direita, raio = 14, altura = 50, rot
           alignItems: 'center',
           backgroundColor: cores.cartao,
           borderWidth: 1,
-          borderColor: erro ? cores.alerta : foco ? cores.bordaForte : cores.borda,
+          borderColor: erro ? cores.alerta : foco ? cores.texto : cores.borda,
           borderRadius: raio,
           height: altura,
           paddingLeft: 14,
@@ -509,7 +512,7 @@ export function Campo({ rotulo, erro, mono, direita, raio = 14, altura = 50, rot
             setFoco(false);
             props.onBlur?.(e);
           }}
-          style={[{ flex: 1, minWidth: 0, height: '100%', fontSize: 16, color: cores.texto, fontFamily: familia(400, mono), padding: 0 }, style]}
+          style={[{ outlineWidth: 0, flex: 1, minWidth: 0, height: '100%', fontSize: 16, color: cores.texto, fontFamily: familia(400, mono), padding: 0 }, style]}
         />
         {direita}
       </View>
@@ -561,7 +564,7 @@ export function CampoValor({
             placeholder="0,00"
             placeholderTextColor={cores.bordaForte}
             onChangeText={(t) => onChange(mascaraValor(t).centavos)}
-            style={{ flex: 1, minWidth: 0, fontSize: 40, fontFamily: familia(600, true), color: cores.texto, letterSpacing: -1.2, padding: 0 }}
+            style={{ outlineWidth: 0, flex: 1, minWidth: 0, fontSize: 40, fontFamily: familia(600, true), color: cores.texto, letterSpacing: -1.2, padding: 0 }}
             {...props}
           />
         </View>

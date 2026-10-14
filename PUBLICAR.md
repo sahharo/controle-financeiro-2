@@ -12,7 +12,7 @@ Você vai usar 3 serviços, os mesmos do Validei:
 |---|---|
 | **GitHub** (github.com) | Guarda o código (o repositório `controle-financeiro-2` já existe) |
 | **Neon** (neon.tech) | Banco de dados (PostgreSQL) |
-| **Render** (render.com) | Roda a API e o site e dá o endereço (plano Starter, US$ 7/mês) |
+| **Render** (render.com) | Roda a API e o site e dá o endereço (plano grátis) |
 
 Tempo: uns 20 minutos.
 
@@ -39,7 +39,7 @@ O Render publica o branch `main`. Se o pull request do app ainda estiver aberto 
 1. Entre em https://render.com com a conta do GitHub.
 2. Clique em **New → Blueprint** e escolha o repositório `controle-financeiro-2`.
    (Se não aparecer, clique em **Configure GitHub** e libere o acesso a ele.)
-3. O Render lê o `render.yaml` do projeto e mostra o serviço **sobra** (plano Starter).
+3. O Render lê o `render.yaml` do projeto e mostra o serviço **sobra** (plano **Free**). Confira que está Free antes de continuar.
 4. Ele pede o valor de **DATABASE_URL**: cole o endereço do banco do passo 2.
    - `BREVO_API_KEY` e `MAIL_FROM` podem ficar vazios por enquanto (veja "E-mail de nova senha" abaixo).
 5. Clique em **Apply**.
@@ -79,7 +79,7 @@ Cada vez que um pull request for juntado ao `main`, o Render publica sozinho em 
 
 ## Bom saber
 
-- No plano Starter do Render o servidor fica sempre ligado (o grátis "dorme" depois de 15 minutos sem uso).
+- No plano grátis do Render, o servidor "dorme" depois de uns 15 minutos sem uso; o primeiro acesso depois disso demora de 30 a 60 segundos. Para deixar sempre ligado, troque para o Starter (US$ 7/mês) em **Settings → Instance Type**. O plano é cobrado por serviço: o do Validei não cobre o Sobra.
 - O plano grátis do Neon aguenta bem o começo; se o app crescer, dá para subir de plano lá.
 - Um domínio próprio (ex.: `sobra.com.br`) pode ser ligado depois em Render → **Settings → Custom Domains**.
 - O Render também oferece banco de dados próprio, mas o gratuito expira depois de 30 dias. Por isso usamos o Neon, como no Validei. Se preferir o do Render (pago), é só colocar o endereço dele no `DATABASE_URL`.

@@ -32,10 +32,18 @@ export default function Cadastro() {
   const [erro, setErro] = useState<string | null>(null);
 
   const tocar = (campo: string) => () => setTocados((t) => ({ ...t, [campo]: true }));
+  const digitos = (t: string) => t.replace(/\D/g, '').length;
+  // O erro aparece ao sair do campo ou, no CPF e no celular, assim que todos os números foram digitados.
+  const mostrar = (campo: string, completo: boolean) => tocados[campo] || completo;
   const erros = {
-    cpf: cpf && !cpfValido(cpf) ? 'CPF inválido' : null,
-    celular: celular && !celularValido(celular) ? 'Celular incompleto' : null,
-    email: email && !emailValido(email) ? 'E-mail inválido' : null,
+    cpf: cpf && !cpfValido(cpf) && mostrar('cpf', digitos(cpf) === 11) ? 'CPF inválido. Confira os números.' : null,
+    celular:
+      celular && !celularValido(celular) && mostrar('celular', digitos(celular) === 11)
+        ? digitos(celular) < 11
+          ? 'Faltam números. Use DDD + 9 + número.'
+          : 'Celular inválido. Use DDD + 9 + número, ex.: (11) 91234-5678.'
+        : null,
+    email: email && !emailValido(email) && mostrar('email', false) ? 'E-mail inválido. Ex.: nome@gmail.com' : null,
   };
   const valido =
     nome.trim() &&
@@ -110,7 +118,7 @@ export default function Cadastro() {
           value={cpf}
           onChangeText={(t) => setCpf(mascaraCpf(t))}
           onBlur={tocar('cpf')}
-          erro={tocados.cpf ? erros.cpf : null}
+          erro={erros.cpf}
           keyboardType="number-pad"
           placeholder="000.000.000-00"
           altura={46}
@@ -122,7 +130,7 @@ export default function Cadastro() {
           value={celular}
           onChangeText={(t) => setCelular(mascaraCelular(t))}
           onBlur={tocar('celular')}
-          erro={tocados.celular ? erros.celular : null}
+          erro={erros.celular}
           keyboardType="phone-pad"
           autoComplete="tel"
           textContentType="telephoneNumber"
@@ -135,7 +143,7 @@ export default function Cadastro() {
           value={email}
           onChangeText={setEmail}
           onBlur={tocar('email')}
-          erro={tocados.email ? erros.email : null}
+          erro={erros.email}
           keyboardType="email-address"
           autoCapitalize="none"
           autoComplete="email"
