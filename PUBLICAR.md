@@ -1,4 +1,4 @@
-# Como publicar o Sobra (grátis, para testes)
+# Como publicar o Sobra
 
 Ao final você tem:
 
@@ -6,13 +6,13 @@ Ao final você tem:
 - a **API e o banco de dados** que o site e o app de celular usam;
 - o **app de celular** apontando para esse endereço.
 
-Você vai usar 3 serviços grátis, os mesmos do Validei:
+Você vai usar 3 serviços, os mesmos do Validei:
 
 | Serviço | Para quê |
 |---|---|
 | **GitHub** (github.com) | Guarda o código (o repositório `controle-financeiro-2` já existe) |
 | **Neon** (neon.tech) | Banco de dados (PostgreSQL) |
-| **Render** (render.com) | Roda a API e o site e dá o endereço |
+| **Render** (render.com) | Roda a API e o site e dá o endereço (plano Starter, US$ 7/mês) |
 
 Tempo: uns 20 minutos.
 
@@ -39,7 +39,7 @@ O Render publica o branch `main`. Se o pull request do app ainda estiver aberto 
 1. Entre em https://render.com com a conta do GitHub.
 2. Clique em **New → Blueprint** e escolha o repositório `controle-financeiro-2`.
    (Se não aparecer, clique em **Configure GitHub** e libere o acesso a ele.)
-3. O Render lê o `render.yaml` do projeto e mostra o serviço **sobra** (plano Free).
+3. O Render lê o `render.yaml` do projeto e mostra o serviço **sobra** (plano Starter).
 4. Ele pede o valor de **DATABASE_URL**: cole o endereço do banco do passo 2.
    - `BREVO_API_KEY` e `MAIL_FROM` podem ficar vazios por enquanto (veja "E-mail de nova senha" abaixo).
 5. Clique em **Apply**.
@@ -77,11 +77,11 @@ Sem isso, todo o resto funciona; só o e-mail de nova senha não é enviado.
 
 Cada vez que um pull request for juntado ao `main`, o Render publica sozinho em alguns minutos.
 
-## Bom saber (plano grátis)
+## Bom saber
 
-- Depois de uns 15 minutos sem ninguém usar, o servidor "dorme". O primeiro acesso depois disso demora de 30 a 60 segundos; depois fica normal. Isso vale para o site e para o app.
-- O plano grátis do Neon é pequeno, mas suficiente para testes.
-- Para usar de verdade, o ideal é um plano pago do Render (a partir de uns US$ 7/mês) e um domínio próprio.
+- No plano Starter do Render o servidor fica sempre ligado (o grátis "dorme" depois de 15 minutos sem uso).
+- O plano grátis do Neon aguenta bem o começo; se o app crescer, dá para subir de plano lá.
+- Um domínio próprio (ex.: `sobra.com.br`) pode ser ligado depois em Render → **Settings → Custom Domains**.
 - O Render também oferece banco de dados próprio, mas o gratuito expira depois de 30 dias. Por isso usamos o Neon, como no Validei. Se preferir o do Render (pago), é só colocar o endereço dele no `DATABASE_URL`.
 
 ## Se der erro
