@@ -1,9 +1,9 @@
 import { router } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Pressable, View } from 'react-native';
 
-import { Folha } from '@/components/Folha';
 import { Icone } from '@/components/Icones';
+import { MenuMes } from '@/components/MenuMes';
 import { Apoio, Texto } from '@/components/Texto';
 import { Barra, Cartao, Linha, Marca, Tela, TituloSecao, Vazio } from '@/components/ui';
 import { useResumo } from '@/hooks/dados';
@@ -23,7 +23,6 @@ export default function Inicio() {
   const usuario = useStore((s) => s.usuario);
   const resolvidos = useStore((s) => s.prejuizosResolvidos);
   const marcarPago = useStore((s) => s.marcarPago);
-  const [escolherMes, setEscolherMes] = useState(false);
 
   const atual = chaveMes(agora);
   const mes = resumo.mes;
@@ -86,26 +85,7 @@ export default function Inicio() {
     <Tela padding={false} emAba>
       <View style={{ paddingHorizontal: margem, paddingTop: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
         <Marca />
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={`Mês: ${nomeMes(mes)}. Trocar mês`}
-          onPress={() => setEscolherMes(true)}
-          style={{
-            height: 44,
-            paddingHorizontal: 14,
-            borderRadius: 999,
-            borderWidth: 1,
-            borderColor: cores.borda,
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 6,
-          }}
-        >
-          <Texto tam={14} peso={500}>
-            {nomeMes(mes, true)}
-          </Texto>
-          <Icone nome="baixo" tam={14} traco={2} />
-        </Pressable>
+        <MenuMes mes={mes} atual={atual} meses={meses} onEscolher={(m) => setMes(m === atual ? null : m)} />
       </View>
 
       {dados.renda.valor <= 0 ? (
@@ -234,23 +214,6 @@ export default function Inicio() {
         </View>
       </View>
 
-      <Folha visivel={escolherMes} onFechar={() => setEscolherMes(false)} titulo="Escolher mês">
-        <View style={{ gap: 0 }}>
-          {meses.map((m, i) => (
-            <Linha
-              key={m}
-              borda={i < meses.length - 1}
-              titulo={`${nomeMes(m, true)} de ${m.slice(0, 4)}`}
-              sub={m === atual ? 'mês atual' : m > atual ? 'previsão' : undefined}
-              direitaExtra={m === mes ? <Icone nome="check" tam={18} cor={cores.destaque} traco={2.4} /> : undefined}
-              onPress={() => {
-                setMes(m === atual ? null : m);
-                setEscolherMes(false);
-              }}
-            />
-          ))}
-        </View>
-      </Folha>
     </Tela>
   );
 }
