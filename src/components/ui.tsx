@@ -490,7 +490,7 @@ export function Campo({ rotulo, erro, mono, direita, raio = 14, altura = 50, rot
           alignItems: 'center',
           backgroundColor: cores.cartao,
           borderWidth: 1,
-          borderColor: erro ? cores.alerta : foco ? cores.bordaForte : cores.borda,
+          borderColor: erro ? cores.alerta : foco ? cores.texto : cores.borda,
           borderRadius: raio,
           height: altura,
           paddingLeft: 14,
@@ -509,7 +509,7 @@ export function Campo({ rotulo, erro, mono, direita, raio = 14, altura = 50, rot
             setFoco(false);
             props.onBlur?.(e);
           }}
-          style={[{ flex: 1, minWidth: 0, height: '100%', fontSize: 16, color: cores.texto, fontFamily: familia(400, mono), padding: 0 }, style]}
+          style={[{ outlineWidth: 0, flex: 1, minWidth: 0, height: '100%', fontSize: 16, color: cores.texto, fontFamily: familia(400, mono), padding: 0 }, style]}
         />
         {direita}
       </View>
@@ -561,7 +561,7 @@ export function CampoValor({
             placeholder="0,00"
             placeholderTextColor={cores.bordaForte}
             onChangeText={(t) => onChange(mascaraValor(t).centavos)}
-            style={{ flex: 1, minWidth: 0, fontSize: 40, fontFamily: familia(600, true), color: cores.texto, letterSpacing: -1.2, padding: 0 }}
+            style={{ outlineWidth: 0, flex: 1, minWidth: 0, fontSize: 40, fontFamily: familia(600, true), color: cores.texto, letterSpacing: -1.2, padding: 0 }}
             {...props}
           />
         </View>
