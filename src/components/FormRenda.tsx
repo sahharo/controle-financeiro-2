@@ -1,12 +1,37 @@
+import { useState } from 'react';
 import { View } from 'react-native';
 
 import { Texto } from './Texto';
 import { CampoValor, Campo, Chip, Marcador } from './ui';
 import type { DiaPagamento, Renda } from '@/store/tipos';
 
-function lerDia(t: string): number {
-  const n = Number(t.replace(/\D/g, ''));
-  return Math.min(31, Math.max(1, n || 1));
+/**
+ * Campo de dia do mês (1 a 31). Guarda o que está sendo digitado, então dá para apagar
+ * e escrever outro número; só avisa quando o dia é válido. Saindo vazio, volta ao último dia.
+ */
+function CampoDia({ rotulo, valor, onChange }: { rotulo: string; valor: number; onChange: (dia: number) => void }) {
+  const [texto, setTexto] = useState(String(valor));
+  const n = Number(texto);
+  const invalido = texto !== '' && (n < 1 || n > 31);
+  return (
+    <Campo
+      rotulo={rotulo}
+      mono
+      keyboardType="number-pad"
+      maxLength={2}
+      value={texto}
+      erro={invalido ? 'Use um dia de 1 a 31.' : null}
+      onChangeText={(t) => {
+        const digitos = t.replace(/\D/g, '');
+        setTexto(digitos);
+        const dia = Number(digitos);
+        if (dia >= 1 && dia <= 31) onChange(dia);
+      }}
+      onBlur={() => {
+        if (!(n >= 1 && n <= 31)) setTexto(String(valor));
+      }}
+    />
+  );
 }
 
 type Opcao = 'dia5' | 'ultimo' | 'duas' | 'outro';
@@ -48,14 +73,7 @@ export function FormRenda({ renda, onChange }: { renda: Renda; onChange: (r: Ren
         </View>
         {opcao === 'outro' && renda.diaPagamento.tipo === 'dia' ? (
           <View style={{ width: 140 }}>
-            <Campo
-              rotulo="Dia do mês"
-              mono
-              keyboardType="number-pad"
-              maxLength={2}
-              value={String(renda.diaPagamento.dia)}
-              onChangeText={(t) => setDia({ tipo: 'dia', dia: lerDia(t) })}
-            />
+            <CampoDia rotulo="Dia do mês" valor={renda.diaPagamento.dia} onChange={(dia) => setDia({ tipo: 'dia', dia })} />
           </View>
         ) : null}
         {renda.diaPagamento.tipo === 'duas_partes' ? (
@@ -64,15 +82,12 @@ export function FormRenda({ renda, onChange }: { renda: Renda; onChange: (r: Ren
               const dias = (renda.diaPagamento as { dias: [number, number] }).dias;
               return (
                 <View key={i} style={{ flex: 1 }}>
-                  <Campo
+                  <CampoDia
                     rotulo={i === 0 ? 'Primeira parte' : 'Segunda parte'}
-                    mono
-                    keyboardType="number-pad"
-                    maxLength={2}
-                    value={String(dias[i])}
-                    onChangeText={(t) => {
+                    valor={dias[i]}
+                    onChange={(dia) => {
                       const novo: [number, number] = [...dias];
-                      novo[i] = lerDia(t);
+                      novo[i] = dia;
                       setDia({ tipo: 'duas_partes', dias: novo });
                     }}
                   />
