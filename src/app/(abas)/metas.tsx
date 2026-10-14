@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Alert, Pressable, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 import { Folha } from '@/components/Folha';
 import { Icone } from '@/components/Icones';
@@ -13,6 +13,7 @@ import { custoDeVida, guardadoNaMeta, mesesParaMeta, mesesSemDeposito, saldoMovi
 import { saldoCaixinha } from '@/lib/rendimento';
 import { useStore, type Meta } from '@/store';
 import { cores, margem } from '@/theme';
+import { alerta } from '@/lib/alerta';
 
 type Rascunho = { id?: string; nome: string; alvo: number; aporteMensal: number };
 
@@ -165,7 +166,7 @@ export default function Metas() {
                   rotulo="Excluir meta"
                   cor={cores.alerta}
                   onPress={() =>
-                    Alert.alert(`Excluir ${rascunho.nome}?`, 'O histórico de depósitos dessa meta será apagado.', [
+                    alerta(`Excluir ${rascunho.nome}?`, 'O histórico de depósitos dessa meta será apagado.', [
                       { text: 'Cancelar', style: 'cancel' },
                       {
                         text: 'Excluir',

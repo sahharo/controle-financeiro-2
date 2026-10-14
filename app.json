@@ -31,7 +31,9 @@
     },
     "web": {
       "favicon": "./assets/favicon.png",
-      "backgroundColor": "#F7F6F3"
+      "backgroundColor": "#F7F6F3",
+      "output": "single",
+      "name": "Sobra"
     },
     "plugins": [
       "expo-router",

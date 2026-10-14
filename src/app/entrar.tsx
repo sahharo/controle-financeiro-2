@@ -1,84 +1,66 @@
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Alert, View } from 'react-native';
+import { View } from 'react-native';
 
 import { CampoSenha } from '@/components/CampoSenha';
 import { Folha } from '@/components/Folha';
 import { Icone, Logo } from '@/components/Icones';
 import { Apoio, Texto } from '@/components/Texto';
 import { Botao, Campo, Link, Tela } from '@/components/ui';
-import { autenticarBiometria, biometriaDisponivel, conferirSenha, salvarSenha } from '@/lib/seguranca';
-import { regrasSenha, soDigitos } from '@/lib/validacao';
+import { conta, ErroApi } from '@/lib/api';
+import { autenticarBiometria, biometriaDisponivel } from '@/lib/seguranca';
+import { emailValido } from '@/lib/validacao';
 import { useStore } from '@/store';
+import { recarregar } from '@/store/sincronizar';
 import { cores } from '@/theme';
 
 export default function Entrar() {
   const usuario = useStore((s) => s.usuario);
-  const logado = useStore((s) => s.logado);
-  const entrar = useStore((s) => s.entrar);
+  // Sessão aberta mas app travado pela biometria ("Pedir biometria ao abrir").
+  const bloqueado = useStore((s) => s.logado && !!s.usuario);
   const [identificador, setIdentificador] = useState(usuario?.email ?? '');
   const [senha, setSenha] = useState('');
   const [erro, setErro] = useState<string | null>(null);
   const [carregando, setCarregando] = useState(false);
   const [temBiometria, setTemBiometria] = useState(false);
-  const [redefinir, setRedefinir] = useState(false);
-  const [novaSenha, setNovaSenha] = useState('');
+  const [esqueci, setEsqueci] = useState<{ email: string; enviado: boolean; carregando: boolean } | null>(null);
 
   useEffect(() => {
     biometriaDisponivel().then((ok) => {
       setTemBiometria(ok);
-      // App bloqueado (sessão aberta + biometria ao abrir): já pede a digital.
-      if (ok && usuario && logado) entrarComBiometria();
+      if (ok && bloqueado) void desbloquear();
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function entrarComSenha() {
     setErro(null);
-    if (!usuario) {
-      setErro('Não há conta neste aparelho. Crie a sua para começar.');
-      return;
-    }
-    const id = identificador.trim().toLowerCase();
-    const confere = id === usuario.email.toLowerCase() || (soDigitos(id).length === 11 && soDigitos(id) === soDigitos(usuario.cpf));
     setCarregando(true);
-    const ok = confere && (await conferirSenha(senha));
-    setCarregando(false);
-    if (ok) entrar();
-    else setErro('E-mail, CPF ou senha não conferem.');
-  }
-
-  async function entrarComBiometria() {
-    if (await autenticarBiometria('Entrar no Sobra')) useStore.getState().entrar();
-  }
-
-  async function esqueci() {
-    if (!usuario) return;
-    if (temBiometria && (await autenticarBiometria('Confirme que é você para criar uma nova senha'))) {
-      setRedefinir(true);
-      return;
+    try {
+      const u = await conta.entrar(identificador, senha);
+      useStore.getState().abrirSessao(u);
+      await recarregar();
+    } catch (e) {
+      setErro(e instanceof ErroApi ? e.message : 'Não deu para entrar agora. Tente de novo.');
+    } finally {
+      setCarregando(false);
     }
-    Alert.alert(
-      'Seus dados ficam só neste aparelho',
-      'Sem a biometria não há como confirmar que é você. Você pode apagar os dados deste aparelho e criar uma conta nova.',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Apagar e recomeçar',
-          style: 'destructive',
-          onPress: () => {
-            useStore.getState().excluirTudo();
-            router.replace('/cadastro');
-          },
-        },
-      ],
-    );
   }
 
-  async function salvarNovaSenha() {
-    await salvarSenha(novaSenha);
-    setRedefinir(false);
-    entrar();
+  async function desbloquear() {
+    if (await autenticarBiometria('Entrar no Sobra')) useStore.getState().desbloquear();
+  }
+
+  async function pedirLink() {
+    if (!esqueci) return;
+    setEsqueci({ ...esqueci, carregando: true });
+    try {
+      await conta.esqueci(esqueci.email.trim());
+      setEsqueci({ ...esqueci, enviado: true, carregando: false });
+    } catch (e) {
+      setEsqueci({ ...esqueci, carregando: false });
+      setErro(e instanceof ErroApi ? e.message : 'Não deu para enviar agora.');
+    }
   }
 
   return (
@@ -90,8 +72,8 @@ export default function Entrar() {
           <Botao onPress={entrarComSenha} carregando={carregando}>
             Entrar
           </Botao>
-          {usuario && temBiometria ? (
-            <Botao variante="claro" onPress={entrarComBiometria} icone={<Icone nome="digital" tam={20} traco={1.7} />}>
+          {bloqueado && temBiometria ? (
+            <Botao variante="claro" onPress={desbloquear} icone={<Icone nome="digital" tam={20} traco={1.7} />}>
               Entrar com biometria
             </Botao>
           ) : null}
@@ -133,25 +115,44 @@ export default function Entrar() {
             {erro}
           </Texto>
         ) : null}
-        {usuario ? (
-          <View style={{ alignSelf: 'flex-end' }}>
-            <Link rotulo="Esqueci minha senha" onPress={esqueci} />
-          </View>
-        ) : null}
+        <View style={{ alignSelf: 'flex-end' }}>
+          <Link
+            rotulo="Esqueci minha senha"
+            onPress={() => setEsqueci({ email: identificador.includes('@') ? identificador : '', enviado: false, carregando: false })}
+          />
+        </View>
       </View>
 
       <Folha
-        visivel={redefinir}
-        onFechar={() => setRedefinir(false)}
-        titulo="Nova senha"
-        sub="Use pelo menos 8 caracteres."
+        visivel={!!esqueci}
+        onFechar={() => setEsqueci(null)}
+        titulo={esqueci?.enviado ? 'Confira seu e-mail' : 'Esqueci minha senha'}
+        sub={
+          esqueci?.enviado
+            ? 'Se houver uma conta com esse e-mail, mandamos um link para criar uma nova senha. Ele vale por 1 hora.'
+            : 'Mandamos um link para o seu e-mail.'
+        }
         rodape={
-          <Botao onPress={salvarNovaSenha} desabilitado={!regrasSenha(novaSenha).every((r) => r.ok)}>
-            Salvar e entrar
-          </Botao>
+          esqueci?.enviado ? (
+            <Botao onPress={() => setEsqueci(null)}>Voltar para o login</Botao>
+          ) : (
+            <Botao onPress={pedirLink} desabilitado={!esqueci || !emailValido(esqueci.email)} carregando={esqueci?.carregando}>
+              Enviar link
+            </Botao>
+          )
         }
       >
-        <CampoSenha rotulo="Nova senha" valor={novaSenha} onChange={setNovaSenha} novaSenha />
+        {esqueci && !esqueci.enviado ? (
+          <Campo
+            rotulo="E-mail"
+            value={esqueci.email}
+            onChangeText={(email) => setEsqueci({ ...esqueci, email })}
+            autoCapitalize="none"
+            keyboardType="email-address"
+            autoComplete="email"
+            autoFocus
+          />
+        ) : null}
       </Folha>
     </Tela>
   );

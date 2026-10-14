@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Alert, Pressable, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 import { Folha } from '../Folha';
 import { Apoio, Texto } from '../Texto';
@@ -12,6 +12,7 @@ import { fixosMensais, gastoNoMes, gastoPorCategoria } from '@/lib/financas';
 import { nomeCategoria, rotuloPagamento } from '@/lib/rotulos';
 import { useStore, type Categoria } from '@/store';
 import { cores, margem } from '@/theme';
+import { alerta } from '@/lib/alerta';
 
 export function Variaveis() {
   const { resumo, dados, agora } = useResumo();
@@ -38,7 +39,7 @@ export function Variaveis() {
 
   function excluirCategoria(c: Partial<Categoria>) {
     if (!c.id) return;
-    Alert.alert(`Excluir ${c.nome}?`, 'Os gastos dessa categoria vão para "Outros".', [
+    alerta(`Excluir ${c.nome}?`, 'Os gastos dessa categoria vão para "Outros".', [
       { text: 'Cancelar', style: 'cancel' },
       {
         text: 'Excluir',

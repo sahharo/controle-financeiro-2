@@ -101,16 +101,3 @@ export function lancarRendimentos(c: Caixinha, agora: Date, cdiAnual: number): C
   }
   return atual;
 }
-
-/** Busca o CDI anualizado mais recente no Banco Central (série SGS 4389). */
-export async function buscarCdi(): Promise<number | null> {
-  try {
-    const r = await fetch('https://api.bcb.gov.br/dados/serie/bcdata.sgs.4389/dados/ultimos/1?formato=json');
-    if (!r.ok) return null;
-    const dados = (await r.json()) as { valor: string }[];
-    const v = Number(String(dados[0]?.valor).replace(',', '.'));
-    return Number.isFinite(v) && v > 0 ? v : null;
-  } catch {
-    return null;
-  }
-}

@@ -10,13 +10,13 @@ import { router, Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
-import { Platform } from 'react-native';
+import { Platform, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { useAgoraForaDeTela, useConquistasEm } from '@/hooks/dados';
 import { agendarLembretes } from '@/lib/lembretes';
-import { buscarCdi } from '@/lib/rendimento';
 import { useStore } from '@/store';
+import { iniciarSincronizacao } from '@/store/sincronizar';
 import { cores } from '@/theme';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -25,7 +25,6 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
 function Manutencao() {
   const fixos = useStore((s) => s.fixos);
   const lembrar = useStore((s) => s.preferencias.lembrarVencimentos);
-  const taxas = useStore((s) => s.taxas);
   const [agora] = useAgoraForaDeTela();
   const { lista, datas } = useConquistasEm(agora);
 
@@ -33,20 +32,11 @@ function Manutencao() {
     agendarLembretes(fixos, lembrar);
   }, [fixos, lembrar]);
 
-  // CDI atualizado no máximo uma vez por dia; depois lança rendimentos dos meses fechados.
+  // Lança o rendimento da caixinha dos meses já fechados (o CDI vem do servidor).
+  const cdi = useStore((s) => s.taxas.cdiAnual);
   useEffect(() => {
-    const { setTaxas, aplicarRendimentos } = useStore.getState();
-    const hoje = new Date().toISOString().slice(0, 10);
-    if (taxas.atualizadoEm?.slice(0, 10) === hoje) {
-      aplicarRendimentos(new Date());
-      return;
-    }
-    buscarCdi().then((cdi) => {
-      if (cdi) setTaxas({ cdiAnual: cdi, atualizadoEm: new Date().toISOString() });
-      useStore.getState().aplicarRendimentos(new Date());
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    useStore.getState().aplicarRendimentos(agora);
+  }, [cdi, agora]);
 
   useEffect(() => {
     const novas = lista.filter((c) => c.conquistada && !datas[c.id]).map((c) => c.id);
@@ -66,6 +56,16 @@ function AbrirNotificacao() {
   return null;
 }
 
+/** No computador, o app fica numa coluna central com a largura de um celular grande. */
+function ColunaSite({ children }: { children: React.ReactNode }) {
+  if (Platform.OS !== 'web') return <>{children}</>;
+  return (
+    <View style={{ flex: 1, backgroundColor: cores.trilho, alignItems: 'center' }}>
+      <View style={{ flex: 1, width: '100%', maxWidth: 520, backgroundColor: cores.fundo, overflow: 'hidden' }}>{children}</View>
+    </View>
+  );
+}
+
 export default function Raiz() {
   const [fontes] = useFonts({
     Geist_400Regular,
@@ -83,15 +83,19 @@ export default function Raiz() {
 
   const pronto = fontes && hidratado;
   useEffect(() => {
-    if (pronto) SplashScreen.hideAsync().catch(() => {});
+    if (!pronto) return;
+    SplashScreen.hideAsync().catch(() => {});
+    void iniciarSincronizacao();
   }, [pronto]);
   if (!pronto) return null;
 
-  const sessao = logado && (desbloqueado || !pedeBiometria);
+  // No site não há biometria: a trava vale só no celular.
+  const sessao = logado && (desbloqueado || !pedeBiometria || Platform.OS === 'web');
 
   return (
     <SafeAreaProvider>
       <StatusBar style="dark" />
+      <ColunaSite>
       {sessao && onboarding ? <Manutencao /> : null}
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: cores.fundo } }}>
         <Stack.Protected guard={!sessao}>
@@ -111,7 +115,9 @@ export default function Raiz() {
           <Stack.Screen name="conquistas" />
           <Stack.Screen name="renda" />
         </Stack.Protected>
+        <Stack.Screen name="redefinir-senha" />
       </Stack>
+      </ColunaSite>
     </SafeAreaProvider>
   );
 }

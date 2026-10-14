@@ -1,13 +1,13 @@
 import * as WebBrowser from 'expo-web-browser';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Alert, View } from 'react-native';
+import { View } from 'react-native';
 
 import { CampoSenha } from '@/components/CampoSenha';
 import { Apoio, Texto } from '@/components/Texto';
 import { Botao, Campo, Link, Marcador, Tela, Voltar } from '@/components/ui';
 import { URL_PRIVACIDADE, URL_TERMOS } from '@/lib/config';
-import { salvarSenha } from '@/lib/seguranca';
+import { conta, ErroApi } from '@/lib/api';
 import {
   celularValido,
   cpfValido,
@@ -20,7 +20,6 @@ import { useStore } from '@/store';
 import { cores } from '@/theme';
 
 export default function Cadastro() {
-  const existente = useStore((s) => s.usuario);
   const [nome, setNome] = useState('');
   const [sobrenome, setSobrenome] = useState('');
   const [cpf, setCpf] = useState('');
@@ -30,6 +29,7 @@ export default function Cadastro() {
   const [aceite, setAceite] = useState(false);
   const [tocados, setTocados] = useState<Record<string, boolean>>({});
   const [carregando, setCarregando] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
 
   const tocar = (campo: string) => () => setTocados((t) => ({ ...t, [campo]: true }));
   const erros = {
@@ -47,24 +47,16 @@ export default function Cadastro() {
     aceite;
 
   async function criar() {
+    setErro(null);
     setCarregando(true);
-    await salvarSenha(senha);
-    useStore.getState().criarConta({
-      nome: nome.trim(),
-      sobrenome: sobrenome.trim(),
-      cpf,
-      celular,
-      email: email.trim().toLowerCase(),
-    });
-    setCarregando(false);
-  }
-
-  function confirmar() {
-    if (!existente) return criar();
-    Alert.alert('Já existe uma conta neste aparelho', 'Criar uma nova conta apaga os dados da conta atual.', [
-      { text: 'Cancelar', style: 'cancel' },
-      { text: 'Apagar e criar', style: 'destructive', onPress: criar },
-    ]);
+    try {
+      const u = await conta.cadastrar({ nome, sobrenome, cpf, celular, email, senha, aceite });
+      useStore.getState().abrirSessao(u);
+    } catch (e) {
+      setErro(e instanceof ErroApi ? e.message : 'Não deu para criar a conta agora. Tente de novo.');
+    } finally {
+      setCarregando(false);
+    }
   }
 
   return (
@@ -72,7 +64,12 @@ export default function Cadastro() {
       contentStyle={{ paddingHorizontal: 24, paddingTop: 12 }}
       rodape={
         <View style={{ gap: 10 }}>
-          <Botao onPress={confirmar} desabilitado={!valido} carregando={carregando}>
+          {erro ? (
+            <Texto tam={14} cor={cores.alerta} centro>
+              {erro}
+            </Texto>
+          ) : null}
+          <Botao onPress={criar} desabilitado={!valido} carregando={carregando}>
             Criar conta
           </Botao>
           <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 4 }}>

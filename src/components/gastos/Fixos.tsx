@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, View } from 'react-native';
+import { View } from 'react-native';
 
 import { Folha } from '../Folha';
 import { Apoio, Texto } from '../Texto';
@@ -10,6 +10,7 @@ import { fmt, fmtInteiro, pct } from '@/lib/dinheiro';
 import { estimativaFixo, fixosMensais } from '@/lib/financas';
 import { useStore, type Fixo, type TipoFixo } from '@/store';
 import { cores, margem } from '@/theme';
+import { alerta } from '@/lib/alerta';
 
 type Rascunho = Omit<Fixo, 'id' | 'pagamentos'> & { id?: string; diaTexto: string };
 
@@ -146,7 +147,7 @@ export function Fixos() {
                   rotulo="Excluir"
                   cor={cores.alerta}
                   onPress={() =>
-                    Alert.alert(`Excluir ${rascunho.nome}?`, undefined, [
+                    alerta(`Excluir ${rascunho.nome}?`, undefined, [
                       { text: 'Cancelar', style: 'cancel' },
                       {
                         text: 'Excluir',

@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Alert, Pressable, ScrollView, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Folha } from '@/components/Folha';
@@ -16,6 +16,7 @@ import { interpretarFrase } from '@/lib/interpretar';
 import { nomeCategoria, rotuloPagamento } from '@/lib/rotulos';
 import { useStore, type FormaPagamento } from '@/store';
 import { cores, familia, margem } from '@/theme';
+import { alerta } from '@/lib/alerta';
 
 const OUTRAS_FORMAS: FormaPagamento[] = [{ tipo: 'pix' }, { tipo: 'debito' }, { tipo: 'dinheiro' }];
 const PARCELAS = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 18, 24];
@@ -84,7 +85,7 @@ export default function Registrar() {
 
   function excluir() {
     if (!existente) return;
-    Alert.alert('Excluir este gasto?', `${existente.descricao} · R$ ${fmt(existente.valor)}`, [
+    alerta('Excluir este gasto?', `${existente.descricao} · R$ ${fmt(existente.valor)}`, [
       { text: 'Cancelar', style: 'cancel' },
       {
         text: 'Excluir',

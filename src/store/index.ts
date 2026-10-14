@@ -41,10 +41,15 @@ interface Dominio extends Dados {
   preferencias: Preferencias;
 }
 
+/** O que vem do servidor em GET /api/estado. */
+export type EstadoServidor = Omit<Dominio, 'logado'>;
+
 interface Acoes {
-  criarConta(u: Omit<Usuario, 'criadoEm'>): void;
-  entrar(): void;
-  sair(): void;
+  /** Depois de entrar ou criar conta: limpa o que havia e guarda quem entrou. */
+  abrirSessao(u: Usuario): void;
+  /** Substitui os dados locais pelos do servidor. */
+  aplicarServidor(e: EstadoServidor): void;
+  encerrarSessao(): void;
   desbloquear(): void;
   concluirOnboarding(p: { renda: Renda; fixos: Omit<Fixo, 'id' | 'pagamentos'>[]; cartao?: Omit<Cartao, 'id'> }): void;
   setRenda(r: Renda): void;
@@ -83,7 +88,6 @@ interface Acoes {
   marcarConquistas(ids: string[]): void;
   setTaxas(t: Taxas): void;
   setPreferencias(p: Partial<Preferencias>): void;
-  excluirTudo(): void;
 }
 
 export type Estado = Dominio & Acoes & { hidratado: boolean; desbloqueado: boolean };
@@ -143,15 +147,9 @@ export const useStore = create<Estado>()(
       hidratado: false,
       desbloqueado: false,
 
-      criarConta: (u) =>
-        set({
-          ...dominioInicial(),
-          usuario: { ...u, criadoEm: new Date().toISOString() },
-          logado: true,
-          desbloqueado: true,
-        }),
-      entrar: () => set({ logado: true, desbloqueado: true }),
-      sair: () => set({ logado: false, desbloqueado: false }),
+      abrirSessao: (usuario) => set({ ...dominioInicial(), usuario, logado: true, desbloqueado: true }),
+      aplicarServidor: (e) => set({ ...e, logado: true }),
+      encerrarSessao: () => set({ ...dominioInicial(), desbloqueado: false }),
       desbloquear: () => set({ desbloqueado: true }),
 
       concluirOnboarding: ({ renda, fixos, cartao }) => {
@@ -316,11 +314,13 @@ export const useStore = create<Estado>()(
         }),
       setTaxas: (taxas) => set({ taxas }),
       setPreferencias: (p) => set((s) => ({ preferencias: { ...s.preferencias, ...p } })),
-      excluirTudo: () => set({ ...dominioInicial(), desbloqueado: false }),
     }),
     {
+      // Cópia local do que está no servidor: o app abre na hora e mostra os dados mesmo sem internet.
       name: 'sobra-dados',
-      version: 1,
+      // v1 guardava tudo só no aparelho; a partir da v2 os dados vêm do servidor.
+      version: 2,
+      migrate: () => dominioInicial(),
       storage: createJSONStorage(() => AsyncStorage),
       partialize: ({ hidratado, desbloqueado, ...resto }) =>
         Object.fromEntries(Object.entries(resto).filter(([, v]) => typeof v !== 'function')) as unknown as Dominio,

@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Alert, Pressable, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 import { Folha } from '@/components/Folha';
 import { Icone } from '@/components/Icones';
@@ -14,6 +14,7 @@ import { nomeCategoria, rotuloPagamento } from '@/lib/rotulos';
 import { mesInicioConta, useStore } from '@/store';
 import { useUi } from '@/store/ui';
 import { cores, margem } from '@/theme';
+import { alerta } from '@/lib/alerta';
 
 export default function Inicio() {
   const mesUi = useUi((s) => s.mes);
@@ -75,7 +76,7 @@ export default function Inicio() {
   }
 
   function pagar(fixoId: string, nome: string, valor: number) {
-    Alert.alert(`Marcar ${nome} como pago?`, `R$ ${fmt(valor)} em ${nomeMes(atual)}.`, [
+    alerta(`Marcar ${nome} como pago?`, `R$ ${fmt(valor)} em ${nomeMes(atual)}.`, [
       { text: 'Cancelar', style: 'cancel' },
       { text: 'Marcar como pago', onPress: () => marcarPago(fixoId, atual, valor) },
     ]);

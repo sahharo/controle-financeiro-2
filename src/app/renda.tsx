@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Alert, View } from 'react-native';
+import { View } from 'react-native';
 
 import { Folha } from '@/components/Folha';
 import { FormRenda } from '@/components/FormRenda';
@@ -10,6 +10,7 @@ import { useAgora } from '@/hooks/dados';
 import { chaveDeIso, chaveMes, nomeMes, quando } from '@/lib/datas';
 import { fmt } from '@/lib/dinheiro';
 import { useStore } from '@/store';
+import { alerta } from '@/lib/alerta';
 
 export default function EditarRenda() {
   const agora = useAgora();
@@ -65,7 +66,7 @@ export default function EditarRenda() {
                 sub={quando(r.data, agora)}
                 valor={`+${fmt(r.valor)}`}
                 onLongPress={() =>
-                  Alert.alert(`Remover ${r.descricao}?`, undefined, [
+                  alerta(`Remover ${r.descricao}?`, undefined, [
                     { text: 'Cancelar', style: 'cancel' },
                     { text: 'Remover', style: 'destructive', onPress: () => removerReceita(r.id) },
                   ])

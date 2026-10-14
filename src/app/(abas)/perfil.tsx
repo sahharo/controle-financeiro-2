@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { Alert, Pressable, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 import { descreverDia } from '@/components/FormRenda';
 import { Icone } from '@/components/Icones';
@@ -9,9 +9,12 @@ import { useConquistas } from '@/hooks/dados';
 import { escolherExtrato, exportarDados } from '@/lib/arquivos';
 import { fmtInteiro } from '@/lib/dinheiro';
 import { pedirPermissaoLembretes } from '@/lib/lembretes';
-import { apagarSenha, autenticarBiometria, biometriaDisponivel } from '@/lib/seguranca';
+import { conta, ErroApi } from '@/lib/api';
+import { autenticarBiometria, biometriaDisponivel } from '@/lib/seguranca';
 import { useStore } from '@/store';
+import { aguardarEnvios } from '@/store/sincronizar';
 import { cores, margem } from '@/theme';
+import { alerta } from '@/lib/alerta';
 
 export default function Perfil() {
   const usuario = useStore((s) => s.usuario);
@@ -27,7 +30,7 @@ export default function Perfil() {
 
   async function alternarLembretes(v: boolean) {
     if (v && !(await pedirPermissaoLembretes())) {
-      Alert.alert('Notificações desligadas', 'Permita as notificações do Sobra nos ajustes do celular para receber os lembretes.');
+      alerta('Notificações desligadas', 'Permita as notificações do Sobra nos ajustes do celular para receber os lembretes.');
       return;
     }
     setPreferencias({ lembrarVencimentos: v });
@@ -36,7 +39,7 @@ export default function Perfil() {
   async function alternarBiometria(v: boolean) {
     if (v) {
       if (!(await biometriaDisponivel())) {
-        Alert.alert('Biometria indisponível', 'Cadastre uma digital ou o reconhecimento facial nos ajustes do celular.');
+        alerta('Biometria indisponível', 'Cadastre uma digital ou o reconhecimento facial nos ajustes do celular.');
         return;
       }
       if (!(await autenticarBiometria('Confirme para ativar'))) return;
@@ -49,11 +52,11 @@ export default function Perfil() {
       const lancamentos = await escolherExtrato();
       if (!lancamentos) return;
       if (!lancamentos.length) {
-        Alert.alert('Nada para importar', 'Não encontramos gastos nesse arquivo. Use um extrato ou fatura em CSV ou OFX.');
+        alerta('Nada para importar', 'Não encontramos gastos nesse arquivo. Use um extrato ou fatura em CSV ou OFX.');
         return;
       }
       const total = lancamentos.reduce((s, l) => s + l.valor, 0);
-      Alert.alert(
+      alerta(
         `Encontramos ${lancamentos.length} ${lancamentos.length === 1 ? 'gasto' : 'gastos'}`,
         `Somam R$ ${fmtInteiro(total)}. Repetidos são ignorados e as categorias vêm pelo que o app já aprendeu.`,
         [
@@ -62,13 +65,13 @@ export default function Perfil() {
             text: 'Importar',
             onPress: () => {
               const n = useStore.getState().importarLancamentos(lancamentos);
-              Alert.alert('Pronto', `${n} ${n === 1 ? 'gasto importado' : 'gastos importados'}.`);
+              alerta('Pronto', `${n} ${n === 1 ? 'gasto importado' : 'gastos importados'}.`);
             },
           },
         ],
       );
     } catch {
-      Alert.alert('Não deu para ler o arquivo', 'Confira se é um CSV ou OFX exportado pelo banco.');
+      alerta('Não deu para ler o arquivo', 'Confira se é um CSV ou OFX exportado pelo banco.');
     }
   }
 
@@ -76,29 +79,41 @@ export default function Perfil() {
     try {
       await exportarDados(useStore.getState());
     } catch {
-      Alert.alert('Não deu para exportar agora', 'Tente de novo em instantes.');
+      alerta('Não deu para exportar agora', 'Tente de novo em instantes.');
     }
   }
 
   function sair() {
-    Alert.alert('Sair da conta?', 'Seus dados continuam guardados neste aparelho.', [
+    alerta('Sair da conta?', 'Seus dados continuam guardados na sua conta. É só entrar de novo.', [
       { text: 'Cancelar', style: 'cancel' },
-      { text: 'Sair', onPress: () => useStore.getState().sair() },
+      {
+        text: 'Sair',
+        onPress: async () => {
+          await aguardarEnvios();
+          await conta.sair().catch(() => {});
+          useStore.getState().encerrarSessao();
+        },
+      },
     ]);
   }
 
   function excluir() {
-    Alert.alert(
+    alerta(
       'Excluir conta e dados?',
-      'Tudo o que você registrou neste aparelho será apagado para sempre. Se quiser guardar uma cópia, exporte seus dados antes.',
+      'Sua conta e tudo o que você registrou serão apagados para sempre, em todos os aparelhos. Se quiser guardar uma cópia, exporte seus dados antes.',
       [
         { text: 'Cancelar', style: 'cancel' },
         {
           text: 'Excluir tudo',
           style: 'destructive',
           onPress: async () => {
-            await apagarSenha();
-            useStore.getState().excluirTudo();
+            try {
+              await aguardarEnvios();
+              await conta.excluir();
+              useStore.getState().encerrarSessao();
+            } catch (e) {
+              alerta('Não deu para excluir agora', e instanceof ErroApi ? e.message : 'Tente de novo em instantes.');
+            }
           },
         },
       ],
@@ -126,7 +141,7 @@ export default function Perfil() {
       <Pressable
         accessibilityRole="button"
         onPress={() =>
-          Alert.alert('Sobra+ em breve', 'Voz sem limite, importação automática de extratos e previsão de 12 meses. Avisaremos quando estiver disponível.')
+          alerta('Sobra+ em breve', 'Voz sem limite, importação automática de extratos e previsão de 12 meses. Avisaremos quando estiver disponível.')
         }
         style={({ pressed }) => ({
           marginHorizontal: margem,
@@ -194,7 +209,7 @@ export default function Perfil() {
         <BotaoTexto rotulo="Sair" cor={cores.textoApoio} onPress={sair} />
         <BotaoTexto rotulo="Excluir conta e dados" cor={cores.alerta} onPress={excluir} />
       </View>
-      <Apoio style={{ marginHorizontal: margem, marginTop: 4 }}>Seus dados ficam guardados só neste aparelho.</Apoio>
+      <Apoio style={{ marginHorizontal: margem, marginTop: 4 }}>Seus dados ficam guardados na sua conta, com acesso pelo app e pelo site.</Apoio>
     </Tela>
   );
 }

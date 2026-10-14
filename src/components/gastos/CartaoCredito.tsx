@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, ScrollView, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 
 import { Folha } from '../Folha';
 import { Apoio, Texto } from '../Texto';
@@ -18,6 +18,7 @@ import {
 } from '@/lib/financas';
 import { useStore, type Cartao as TCartao } from '@/store';
 import { cores, margem } from '@/theme';
+import { alerta } from '@/lib/alerta';
 
 type Rascunho = { id?: string; nome: string; fechamento: string; vencimento: string; limite: number };
 
@@ -93,7 +94,7 @@ export function CartaoCredito() {
                   rotulo="Excluir cartão"
                   cor={cores.alerta}
                   onPress={() =>
-                    Alert.alert(`Excluir ${rascunho.nome}?`, 'As compras feitas nele continuam no histórico, como débito.', [
+                    alerta(`Excluir ${rascunho.nome}?`, 'As compras feitas nele continuam no histórico, como débito.', [
                       { text: 'Cancelar', style: 'cancel' },
                       {
                         text: 'Excluir',
