@@ -1,0 +1,81 @@
+{
+  "expo": {
+    "name": "Sobra",
+    "slug": "sobra",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "app.sobra.financas",
+      "infoPlist": {
+        "NSFaceIDUsageDescription": "Use o Face ID para entrar no Sobra sem digitar a senha.",
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "app.sobra.financas",
+      "adaptiveIcon": {
+        "backgroundColor": "#F7F6F3",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT",
+        "android.permission.RECORD_AUDIO"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "backgroundColor": "#F7F6F3",
+      "output": "single",
+      "name": "Sobra"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 120,
+          "resizeMode": "contain",
+          "backgroundColor": "#F7F6F3"
+        }
+      ],
+      "expo-secure-store",
+      "expo-sharing",
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Use o Face ID para entrar no Sobra sem digitar a senha."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#5F7D6B"
+        }
+      ],
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "O Sobra usa o microfone para você registrar gastos falando.",
+          "speechRecognitionPermission": "O Sobra transforma o que você fala em texto para registrar seus gastos."
+        }
+      ],
+      "expo-web-browser"
+    ],
+    "scheme": "sobra",
+    "backgroundColor": "#F7F6F3",
+    "experiments": {
+      "typedRoutes": true
+    },
+    "description": "Controle financeiro que mostra quanto você pode gastar hoje.",
+    "primaryColor": "#5F7D6B"
+  }
+}

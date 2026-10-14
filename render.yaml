@@ -1,0 +1,22 @@
+# Blueprint do Render: um serviço web roda a API e serve o site (versão web do app) no mesmo endereço.
+services:
+  - type: web
+    name: sobra
+    runtime: node
+    plan: starter
+    buildCommand: npm ci --include=dev && npm run build:web && cd server && npm ci --include=dev
+    startCommand: cd server && npm start
+    healthCheckPath: /api/saude
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: EXPO_OFFLINE
+        value: "1"
+      - key: DATABASE_URL
+        sync: false
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: BREVO_API_KEY
+        sync: false
+      - key: MAIL_FROM
+        sync: false
